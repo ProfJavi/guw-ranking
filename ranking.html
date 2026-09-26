@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 Leaderboard · Great Universal Writers</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Poppins', 'Montserrat', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #004943 0%, #002e2a 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: #333;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+  }
+
+  .header {
+    background: #004943;
+    padding: 30px;
+    text-align: center;
+    border-bottom: 4px solid #F18625;
+  }
+
+  .header h1 {
+    color: #FFFFFF;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  .header p {
+    color: #F18625;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .content {
+    padding: 30px;
+    min-height: 300px;
+  }
+
+  .loading, .error, .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 1.1rem;
+  }
+
+  .error { color: #dc3545; }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+  }
+
+  .empty-title {
+    font-size: 1.3rem;
+    color: #004943;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .empty-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 25px;
+  }
+
+  .empty-cta {
+    display: inline-block;
+    background: #F18625;
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+  }
+
+  .empty-cta:hover {
+    background: #004943;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 73, 67, 0.3);
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  .leaderboard-table th {
+    background: #004943;
+    color: #FFFFFF;
+    padding: 15px;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+
+  .leaderboard-table th:first-child {
+    text-align: center;
+    width: 70px;
+  }
+
+  .leaderboard-table th:last-child {
+    text-align: right;
+  }
+
+  .leaderboard-table td {
+    padding: 15px;
+    border-bottom: 1px solid #F5F5F5;
+    font-size: 1rem;
+  }
+
+  .leaderboard-table tr:hover {
+    background: #F5F5F5;
+  }
+
+  .rank-1 {
+    background: linear-gradient(90deg, #FFF8E1 0%, #FFECB3 100%);
+    font-weight: 700;
+  }
+
+  .rank-1 td:first-child { font-size: 1.5rem; }
+
+  .rank-2 {
+    background: linear-gradient(90deg, #F5F5F5 0%, #E8E8E8 100%);
+    font-weight: 700;
+  }
+
+  .rank-2 td:first-child { font-size: 1.5rem; }
+
+  .rank-3 {
+    background: linear-gradient(90deg, #FBE9E7 0%, #FFCCBC 100%);
+    font-weight: 700;
+  }
+
+  .rank-3 td:first-child { font-size: 1.5rem; }
+
+  .rank-cell {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #004943;
+  }
+
+  .username-cell {
+    color: #333;
+    font-weight: 600;
+  }
+
+  .score-cell {
+    text-align: right;
+    font-weight: 700;
+    color: #004943;
+    font-size: 1.1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 20px;
+    background: #F5F5F5;
+    color: #666;
+    font-size: 0.85rem;
+    border-top: 1px solid #E0E0E0;
+  }
+
+  .footer a {
+    color: #004943;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .footer a:hover {
+    color: #F18625;
+  }
+
+  .last-update {
+    text-align: center;
+    padding: 10px;
+    color: #999;
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.5rem; }
+    .content { padding: 15px; }
+    .leaderboard-table th, .leaderboard-table td {
+      padding: 10px 8px;
+      font-size: 0.85rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🏆 LEADERBOARD</h1>
+    <p>Great Universal Writers · Midterm Challenge</p>
+  </div>
+
+  <div class="content" id="content">
+    <div class="loading">⏳ Loading leaderboard...</div>
+  </div>
+
+  <div class="last-update" id="lastUpdate"></div>
+
+  <div class="footer">
+    <p>Updated automatically · <a href="https://profjavi.neocities.org/">← Play the Exam Challenge</a></p>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURACIÓN: URL del Google Sheet publicado como CSV
+  // ============================================================
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5yk668jSWo5Ra4OdVpRcIIreMYqIogg7-PETMC6C9KYJrUADUYAFyYKO_-3tcJWDziA80FhnxUOxi/pub?gid=1530046001&single=true&output=csv';
+  const CSV_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV_URL);
+
+  // ============================================================
+  // FUNCIÓN PRINCIPAL: Cargar y mostrar el ranking
+  // ============================================================
+  async function loadLeaderboard() {
+    const content = document.getElementById('content');
+    const lastUpdate = document.getElementById('lastUpdate');
+
+    try {
+      const response = await fetch(CSV_URL + '&t=' + Date.now());
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const csvText = await response.text();
+      const rows = parseCSV(csvText);
+
+      // ===== SIN DATOS =====
+      if (rows.length < 2) {
+        content.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">🎮</div>
+            <div class="empty-title">No scores yet!</div>
+            <div class="empty-subtitle">Be the first to play the Exam Challenge and claim the top spot.</div>
+            <a href="https://profjavi.neocities.org/" class="empty-cta">Play the Exam Challenge →</a>
+          </div>
+        `;
+        lastUpdate.textContent = '';
+        return;
+      }
+
+      // ===== DETECTAR COLUMNAS =====
+      const headers = rows[0].map(h => h.trim());
+      const emailIndex = headers.findIndex(h => h.toLowerCase().includes('email'));
+      const usernameIndex = headers.findIndex(h => h.toLowerCase().includes('username'));
+      const totalScoreIndex = headers.findIndex(h => h.toLowerCase().includes('total score'));
+
+      if (emailIndex === -1 || usernameIndex === -1 || totalScoreIndex === -1) {
+        throw new Error('CSV headers not found. Expected: Institutional Email, Username, Total Score');
+      }
+
+      // ===== AGRUPAR POR EMAIL =====
+      const userMap = new Map();
+
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.length < headers.length) continue;
+
+        const email = (row[emailIndex] || '').trim().toLowerCase();
+        const username = (row[usernameIndex] || '').trim();
+        const totalScore = parseInt(row[totalScoreIndex], 10);
+
+        if (!email || !username || isNaN(totalScore)) continue;
+
+        if (!userMap.has(email) || totalScore > userMap.get(email).totalScore) {
+          userMap.set(email, { username, totalScore });
+        }
+      }
+
+      const leaderboard = Array.from(userMap.values())
+        .sort((a, b) => b.totalScore - a.totalScore);
+
+      if (leaderboard.length === 0) {
+        content.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">🎮</div>
+            <div class="empty-title">No scores yet!</div>
+            <div class="empty-subtitle">Be the first to play the Exam Challenge and claim the top spot.</div>
+            <a href="https://profjavi.neocities.org/" class="empty-cta">Play the Exam Challenge →</a>
+          </div>
+        `;
+        lastUpdate.textContent = '';
+        return;
+      }
+
+      // ===== RENDERIZAR TABLA =====
+      let html = '<table class="leaderboard-table"><thead><tr>';
+      html += '<th>Rank</th>';
+      html += '<th>Username</th>';
+      html += '<th>Total Score</th>';
+      html += '</tr></thead><tbody>';
+
+      leaderboard.forEach((entry, index) => {
+        const rank = index + 1;
+        let rankClass = '';
+        let rankDisplay = rank;
+
+        if (rank === 1) { rankClass = 'rank-1'; rankDisplay = '🥇'; }
+        else if (rank === 2) { rankClass = 'rank-2'; rankDisplay = '🥈'; }
+        else if (rank === 3) { rankClass = 'rank-3'; rankDisplay = '🥉'; }
+
+        html += `<tr class="${rankClass}">`;
+        html += `<td class="rank-cell">${rankDisplay}</td>`;
+        html += `<td class="username-cell">${escapeHtml(entry.username)}</td>`;
+        html += `<td class="score-cell">${entry.totalScore}</td>`;
+        html += `</tr>`;
+      });
+
+      html += '</tbody></table>';
+      content.innerHTML = html;
+
+      const now = new Date();
+      lastUpdate.textContent = `Last updated: ${now.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })}`;
+
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+      content.innerHTML = `<div class="error">❌ Could not load leaderboard. Please try again later.</div>`;
+      lastUpdate.textContent = '';
+    }
+  }
+
+  // ============================================================
+  // PARSE CSV
+  // ============================================================
+  function parseCSV(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (insideQuotes) {
+        if (char === '"' && nextChar === '"') {
+          currentField += '"';
+          i++;
+        } else if (char === '"') {
+          insideQuotes = false;
+        } else {
+          currentField += char;
+        }
+      } else {
+        if (char === '"') {
+          insideQuotes = true;
+        } else if (char === ',') {
+          currentRow.push(currentField);
+          currentField = '';
+        } else if (char === '\n') {
+          currentRow.push(currentField);
+          rows.push(currentRow);
+          currentRow = [];
+          currentField = '';
+        } else if (char === '\r') {
+          // Ignore
+        } else {
+          currentField += char;
+        }
+      }
+    }
+
+    if (currentField || currentRow.length > 0) {
+      currentRow.push(currentField);
+      rows.push(currentRow);
+    }
+
+    return rows.filter(row => row.some(cell => cell.trim() !== ''));
+  }
+
+  // ============================================================
+  // ESCAPAR HTML
+  // ============================================================
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  loadLeaderboard();
+  setInterval(loadLeaderboard, 60000);
+</script>
+
+</body>
+</html>
