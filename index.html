@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 The Exam Challenge · Great Universal Writers</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Poppins', 'Montserrat', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #004943 0%, #002e2a 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #333;
+  }
+
+  .game-container {
+    width: 100%;
+    max-width: 900px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .header {
+    background: #004943;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 4px solid #F18625;
+  }
+
+  .header h1 {
+    color: #FFFFFF;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .header h1 span { color: #F18625; }
+
+  .score-board { display: flex; gap: 15px; align-items: center; }
+
+  .score-item {
+    background: #F18625;
+    color: #FFFFFF;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .score-item.green { background: #FFFFFF; color: #004943; }
+
+  .progress-bar {
+    height: 6px;
+    background: #F5F5F5;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #004943, #F18625);
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .game-content {
+    padding: 40px 30px;
+    min-height: 450px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .start-screen, .end-screen, .id-screen {
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .start-screen h2, .end-screen h2, .id-screen h2 {
+    color: #004943;
+    font-size: 2rem;
+    margin-bottom: 15px;
+  }
+
+  .start-screen p, .end-screen p, .id-screen p {
+    color: #666;
+    font-size: 1.05rem;
+    margin-bottom: 25px;
+    line-height: 1.6;
+  }
+
+  .rules, .id-form {
+    background: #F5F5F5;
+    border-left: 5px solid #F18625;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+    margin-bottom: 30px;
+  }
+
+  .rules h3, .id-form h3 {
+    color: #004943;
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+  }
+
+  .rules ul { list-style: none; padding-left: 0; }
+
+  .rules li {
+    padding: 6px 0;
+    color: #333;
+    font-size: 0.95rem;
+  }
+
+  .rules li::before { content: "🔹 "; margin-right: 5px; }
+
+  .id-form label {
+    display: block;
+    color: #004943;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    margin-top: 15px;
+  }
+
+  .id-form input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #004943;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s;
+    background: #FFFFFF;
+  }
+
+  .id-form input:focus {
+    border-color: #F18625;
+    box-shadow: 0 0 0 3px rgba(241, 134, 37, 0.15);
+  }
+
+  .id-form input.error {
+    border-color: #dc3545;
+    background: #fff5f5;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    display: none;
+  }
+
+  .error-message.visible { display: block; }
+
+  .btn {
+    background: #004943;
+    color: #FFFFFF;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+  }
+
+  .btn:hover {
+    background: #F18625;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(241, 134, 37, 0.4);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  .btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #004943;
+    border: 2px solid #004943;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    margin: 5px;
+  }
+
+  .btn-secondary:hover {
+    background: #004943;
+    color: #FFFFFF;
+  }
+
+  .btn-orange {
+    background: #F18625;
+    color: #FFFFFF;
+  }
+
+  .btn-orange:hover {
+    background: #004943;
+  }
+
+  .question-screen { animation: slideIn 0.4s ease; }
+
+  .question-counter {
+    color: #F18625;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .topic-tag {
+    display: inline-block;
+    background: #004943;
+    color: #FFFFFF;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .question-box {
+    background: #F5F5F5;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 25px;
+    border-left: 5px solid #004943;
+  }
+
+  .question-text {
+    color: #333;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .option-btn {
+    background: #FFFFFF;
+    color: #333;
+    border: 2px solid #004943;
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: #F5F5F5;
+    border-color: #F18625;
+    transform: translateX(5px);
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  .option-letter {
+    background: #004943;
+    color: #FFFFFF;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .option-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+
+  .option-btn.correct .option-letter { background: #28a745; }
+
+  .option-btn.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+  }
+
+  .option-btn.incorrect .option-letter { background: #dc3545; }
+
+  .feedback {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.05rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .feedback.correct {
+    background: #d4edda;
+    color: #155724;
+    border-left: 5px solid #28a745;
+  }
+
+  .feedback.incorrect {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 5px solid #dc3545;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+  }
+
+  .final-score {
+    font-size: 4rem;
+    color: #F18625;
+    font-weight: 700;
+    margin: 20px 0 10px 0;
+  }
+
+  .final-message {
+    font-size: 1.3rem;
+    color: #004943;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+
+  .final-tip {
+    background: #F5F5F5;
+    border-left: 5px solid #F18625;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+    margin: 25px 0;
+    color: #333;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .final-tip strong { color: #004943; }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+
+  .stat-box {
+    background: #F5F5F5;
+    border-left: 5px solid #004943;
+    border-radius: 10px;
+    padding: 15px 25px;
+    text-align: center;
+    min-width: 150px;
+  }
+
+  .stat-box .stat-label {
+    color: #666;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .stat-box .stat-value {
+    color: #004943;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  .submission-box {
+    background: #e8f5e9;
+    border-left: 5px solid #28a745;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+  }
+
+  .submission-box p {
+    color: #155724;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+
+  .code-box {
+    background: #FFFFFF;
+    border: 2px dashed #004943;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+    color: #333;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @media (max-width: 600px) {
+    .header { flex-direction: column; gap: 10px; text-align: center; }
+    .header h1 { font-size: 1rem; }
+    .game-content { padding: 25px 20px; }
+    .question-text { font-size: 0.95rem; }
+    .option-btn { font-size: 0.88rem; padding: 14px 16px; }
+    .card-actions { justify-content: center; flex-wrap: wrap; }
+    .stats-row { gap: 10px; }
+    .stat-box { padding: 10px 15px; min-width: 120px; }
+    .stat-box .stat-value { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="header">
+    <h1>🎯 GREAT UNIVERSAL <span>WRITERS</span></h1>
+    <div class="score-board">
+      <div class="score-item" id="scoreDisplay">Score: 0</div>
+      <div class="score-item green" id="cardDisplay">Q: 0/10</div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="game-content" id="gameContent"></div>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURACIÓN DEL GOOGLE FORM
+  // ============================================================
+  const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScd5mic4FGi70NG7TesTIWmwVgVY9mIpsOYn83vfEHEpJm0Xg/viewform?usp=pp_url';
+  const FORM_FIELDS = {
+    email: 'entry.15010639',
+    username: 'entry.765745969',
+    score: 'entry.1355318186',
+    total: 'entry.1349044125'
+  };
+
+  // ============================================================
+  // URL DEL RANKING (alojado en GitHub Pages)
+  // ============================================================
+  const LEADERBOARD_URL = 'https://profjavi.github.io/guw-ranking/ranking.html';
+
+  // ============================================================
+  // BANCO DE 90 PREGUNTAS (15 por tema)
+  // ============================================================
+  const questionBank = [
+    // ===== TOPIC 1: EPIC & EPOPEE (15) =====
+    { topic: "Epic & Epopee", q: "What does the word \"epic\" literally mean?", options: ["Narrated word", "Long poem", "Heroic song"], correct: 0 },
+    { topic: "Epic & Epopee", q: "Why is the epic considered the foundation of all literature in the world?", options: ["Because it was the first genre written down", "Because it was transmitted orally across generations and exalted ancestral values", "Because it was invented by the Greeks"], correct: 1 },
+    { topic: "Epic & Epopee", q: "Which of the following is NOT a characteristic of epic poems?", options: ["Mixing legends with history", "Invocation of a muse", "Use of colloquial and everyday language"], correct: 2 },
+    { topic: "Epic & Epopee", q: "What is the precise function of an epithet in epic poetry?", options: ["To replace the character's name entirely", "To magnify or enhance a characteristic of a noun, even if not strictly necessary", "To introduce the intervention of the gods"], correct: 1 },
+    { topic: "Epic & Epopee", q: "What is the key difference between \"story\" and \"theme\" in a literary text?", options: ["Story is the abstract message; theme is the chronological sequence of events", "Story is the chronological sequence of actions; theme is the repeated abstract meaning", "Story refers only to myths; theme refers only to historical facts"], correct: 1 },
+    { topic: "Epic & Epopee", q: "In the Epic of Gilgamesh, what specific event causes Gilgamesh to begin his search for immortality?", options: ["The gods send Enkidu to humble him", "The goddess Ishtar declares her desire for him", "The death of Enkidu after the gods are offended by Ishtar's dishonor"], correct: 2 },
+    { topic: "Epic & Epopee", q: "What is the main emphasis of Chinese literature compared to Western literature?", options: ["The search for Truth", "The practice of Virtue", "The exaltation of war heroes"], correct: 1 },
+    { topic: "Epic & Epopee", q: "Which correctly describes the Mahabharata?", options: ["It has 24,000 stanzas and tells the story of Rama", "It has more than 200,000 verses and tells the struggle for the throne of Hastinapura", "It was written by Valmiki and tells the story of a kidnapped queen"], correct: 1 },
+    { topic: "Epic & Epopee", q: "In the Aeneid, what is the specific reason Aeneas must forsake Dido?", options: ["He no longer loves her", "The gods rule that he must descend into the underworld to behold Rome's future", "Dido betrays him with Turno"], correct: 1 },
+    { topic: "Epic & Epopee", q: "What does Penelope represent in the Odyssey?", options: ["The encounter with oneself", "Fidelity and hope", "The wrath of the gods"], correct: 1 },
+    { topic: "Epic & Epopee", q: "What is the key difference between the Iliad and the Odyssey?", options: ["The Iliad is about the Trojan War; the Odyssey is about the return home", "The Iliad is Latin; the Odyssey is Greek", "The Iliad has 24,000 verses; the Odyssey has 15,000"], correct: 0 },
+    { topic: "Epic & Epopee", q: "Which epic is known as the longest poem in the world, and how many verses does it have?", options: ["The Mahabharata, more than 200,000 verses", "The Ramayana, more than 24,000 stanzas", "The Iliad, more than 15,000 verses"], correct: 0 },
+    { topic: "Epic & Epopee", q: "What does the Book of the Dead contain, and what was its purpose?", options: ["Egyptian prayers to guide the deceased through the afterlife", "Mesopotamian laws for governing the people", "Greek myths about the gods of Olympus"], correct: 0 },
+    { topic: "Epic & Epopee", q: "In the Ramayana, who kidnaps Sita, and how does Rama rescue her?", options: ["Ravana kidnaps her; Rama rescues her with an army of monkeys", "Turno kidnaps her; Aeneas rescues her with the help of the gods", "Hector kidnaps her; Achilles rescues her with the help of Patroclus"], correct: 0 },
+    { topic: "Epic & Epopee", q: "What is the specific role of the gods in epic poetry?", options: ["They are absent from the narrative", "They appear and live with humans, intervening in their affairs", "They only appear in the introduction"], correct: 1 },
+
+    // ===== TOPIC 2: MEDIEVAL SONGS (15) =====
+    { topic: "Medieval Songs", q: "What specific consequence did the fragmentation of the Roman Empire have on literature?", options: ["The disappearance of oral tradition", "The proliferation of epic, written and oral, exalting heroes", "The exclusive use of Latin in all texts"], correct: 1 },
+    { topic: "Medieval Songs", q: "What was the specific role of fiefs in the Middle Ages?", options: ["Tracts of land granted to those who offered vassalage, where peasants gave their lands in exchange for protection", "Independent kingdoms ruled by elected kings", "Religious territories controlled by the Church"], correct: 0 },
+    { topic: "Medieval Songs", q: "Why were the Chansons de geste composed in Romance languages instead of Latin?", options: ["Because Latin was forbidden by the kings", "Because the common people had stopped speaking Latin by the 10th century", "Because Romance languages were easier to rhyme"], correct: 1 },
+    { topic: "Medieval Songs", q: "What specific historical event inspired the Song of Roland, and when did it occur?", options: ["The Battle of Roncevaux Pass on August 15, 778", "The Crusades in 1095", "The fall of Constantinople in 1453"], correct: 0 },
+    { topic: "Medieval Songs", q: "What is the central theme of the Song of Mio Cid?", options: ["The progressive aggrandizement of an unjustly banished hero who regains his honor", "The revenge of a knight against his king", "The love story between a knight and a princess"], correct: 0 },
+    { topic: "Medieval Songs", q: "Why is the Nibelungenlied often referred to as the \"German Iliad\"?", options: ["Because it was written in Greek", "Because it recounts the heroic exploits and tragic downfall of Germanic ancestors", "Because it has exactly the same number of verses as the Iliad"], correct: 1 },
+    { topic: "Medieval Songs", q: "What specific characteristic of the Chansons de geste is mentioned regarding their structure?", options: ["They had a fixed meter and rhyme scheme", "They lacked a fixed structure, had marked rhythm, and no dominant meter", "They were written in prose"], correct: 1 },
+    { topic: "Medieval Songs", q: "Who were the Chansons de geste mainly addressed to?", options: ["The nobility and clergy", "The people", "The king and his court"], correct: 1 },
+    { topic: "Medieval Songs", q: "What specific value governed the lives of the protagonists in Chansons de geste?", options: ["Honor and courage", "Wealth and power", "Intelligence and cunning"], correct: 0 },
+    { topic: "Medieval Songs", q: "How many surviving manuscripts of the Nibelungenlied are known today?", options: ["More than 35", "More than 100", "Only 3"], correct: 0 },
+    { topic: "Medieval Songs", q: "What is the original title of the Song of Roland in Anglo-Norman?", options: ["La Chanson de Roland", "El Cantar del Mío Cid", "Das Nibelungenlied"], correct: 0 },
+    { topic: "Medieval Songs", q: "How many lines does the Song of Roland consist of, and what are its short stanzas called?", options: ["4,002 lines arranged in laisses", "2,400 stanzas arranged in cantos", "15,000 verses arranged in chapters"], correct: 0 },
+    { topic: "Medieval Songs", q: "How were the Chansons de geste created over time?", options: ["A single author wrote them in one sitting", "The great characters of a town were gradually socially idealized, turning them into heroes", "They were translated directly from Latin texts"], correct: 1 },
+    { topic: "Medieval Songs", q: "What was the specific role of the Chansons de geste in society?", options: ["To entertain the king and his court", "To help societies achieve national identification and set their political, geographical and cultural characteristics", "To teach Latin to the common people"], correct: 1 },
+    { topic: "Medieval Songs", q: "When was the Song of Mio Cid completed, and by whom was this dating proposed?", options: ["1140, according to Menéndez Pedil", "1065, according to Acebedo", "1200, according to Vizcaíno"], correct: 0 },
+
+    // ===== TOPIC 3: RENAISSANCE (15) =====
+    { topic: "Renaissance", q: "What specific proposal gave rise to the term \"Renaissance\"?", options: ["The re-establishment of Greco-Latin models", "The invention of the printing press", "The discovery of America"], correct: 0 },
+    { topic: "Renaissance", q: "What specific change did Shakespeare introduce to pre-Renaissance drama?", options: ["He eliminated the chorus", "He updated the simplistic, two-dimensional writing style to create characters with psychological complexity", "He wrote only in Latin"], correct: 1 },
+    { topic: "Renaissance", q: "Which of the following is NOT mentioned as a theme in Shakespeare's works?", options: ["Love and hate", "Ambition and jealousy", "Science and technology"], correct: 2 },
+    { topic: "Renaissance", q: "Why do some scholars doubt that Shakespeare wrote all his plays?", options: ["Because he was illiterate", "Because of his vast output and the paradigmatic quality of his plays", "Because he admitted to using ghostwriters"], correct: 1 },
+    { topic: "Renaissance", q: "What is the key difference between the author and the narrator?", options: ["The author is a literary construction; the narrator is a real person", "The author creates the world; the narrator is a fictional character within that world", "They are the same person"], correct: 1 },
+    { topic: "Renaissance", q: "What specific characteristic defines a witness narrator?", options: ["They know everything about the protagonists", "They tell something they saw or heard, may be part of the story, but are not the main character", "They are always the protagonist"], correct: 1 },
+    { topic: "Renaissance", q: "What is the specific function of a second-person narrator?", options: ["They use \"I\" and bring realism", "They narrate directly to the reader, towards themselves or another character, using \"you\"", "They use \"he/she/them\" from outside the story"], correct: 1 },
+    { topic: "Renaissance", q: "What is a round character?", options: ["A character who stays the same from beginning to end", "A character who undergoes a transformation throughout the story", "A character who represents a social group"], correct: 1 },
+    { topic: "Renaissance", q: "Which Shakespeare play is the most famous example of psychological complexity?", options: ["Macbeth", "Hamlet", "Romeo and Juliet"], correct: 1 },
+    { topic: "Renaissance", q: "What specific classification of characters is described as representing ideas, values, or concepts symbolically?", options: ["Stereotypical character", "Archetypical character", "Tertiary character"], correct: 1 },
+    { topic: "Renaissance", q: "What is the specific difference between a protagonist narrator and an omniscient narrator?", options: ["The protagonist narrator is the main character and tells the story in first person; the omniscient knows everything about all characters", "The protagonist narrator knows everything; the omniscient is the main character", "They are the same"], correct: 0 },
+    { topic: "Renaissance", q: "What is a flat character?", options: ["A character who undergoes a transformation", "A character who stays the same from beginning to end", "A character who represents a social group"], correct: 1 },
+    { topic: "Renaissance", q: "What specific type of character is described as intervening sporadically in the story, as elements of setting or decoration?", options: ["Secondary character", "Tertiary or incidental character", "Round character"], correct: 1 },
+    { topic: "Renaissance", q: "What is the specific function of an antagonist?", options: ["To help the protagonist", "To represent the force or obstacle against which the protagonist fights", "To narrate the story"], correct: 1 },
+    { topic: "Renaissance", q: "What specific characteristic of Shakespeare's works is mentioned regarding monarchs?", options: ["They are portrayed as perfect beings", "They are portrayed as beings with human emotions, capable of making terrible mistakes", "They are absent from his works"], correct: 1 },
+
+    // ===== TOPIC 4: SPANISH GOLDEN AGE (15) =====
+    { topic: "Spanish Golden Age", q: "What specific event marks the beginning of the Spanish Golden Age?", options: ["The discovery of America in 1492", "The birth of Cervantes in 1547", "The death of Calderón de la Barca in 1680"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific characteristic of Don Quixote makes it a parody?", options: ["The protagonist is a young, brave, and consistent hero", "The protagonist is an old, crazy man who invents his own rules", "The protagonist is a king who loses his throne"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What does Sancho Panza specifically represent in Don Quixote?", options: ["The idealism of the protagonist", "The common sense that balances his counterpart", "The cruelty of society"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific literary current is Luis de Góngora associated with, and what is its main characteristic?", options: ["Conceptism: witty, concise, conceptual", "Culterism: complex, Latinized language, many mythological references", "Realism: objective observation of daily life"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "Why were Góngora's poems not well received by the public of his time?", options: ["Because they were too short", "Because they were classified as indecipherable and confusing", "Because they were written in Latin"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific contribution did Lope de Vega make to Spanish theater?", options: ["He eliminated comedy from theater", "He manifested creative freedom and the indomitable strength of feelings", "He wrote only tragedies"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What is the main characteristic of Conceptism?", options: ["The fundamental thing was the idea, using word games and ingenious language", "The use of complex, Latinized language", "The exaltation of nature and emotion"], correct: 0 },
+    { topic: "Spanish Golden Age", q: "What specific historical event influenced the literature of the Spanish Golden Age?", options: ["The French Revolution", "The decline of the Spanish Empire, climate crisis, epidemics, and the expulsion of the Moors", "The Industrial Revolution"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific characteristic of Don Quixote is mentioned regarding reality and fiction?", options: ["Reality and fiction are completely separated", "Reality and fiction are masterfully intertwined", "Fiction dominates reality entirely"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What does Cervantes inaugurate with Don Quixote?", options: ["The epic poem", "The novel as it is known today", "The essay"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific work by Cervantes continued the genre of the novel?", options: ["Exemplary Novels", "La Galatea", "Don Quixote Part III"], correct: 0 },
+    { topic: "Spanish Golden Age", q: "What specific criticism did Francisco de Quevedo make of Góngora?", options: ["He criticized his use of Latin", "He made fun of him, causing poets to be constantly fighting and criticizing each other through their texts", "He accused him of plagiarism"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific characteristic of Don Quixote's goals is mentioned?", options: ["To become a king", "To fix the world, \"scroll ugly\"", "To find a lost treasure"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "How was Luis de Góngora's poetry received by the public of his time?", options: ["It was immediately popular and celebrated", "It was classified as indecipherable and confusing", "It was banned by the Church and the Crown"], correct: 1 },
+    { topic: "Spanish Golden Age", q: "What specific role does Sancho Panza play in Don Quixote's survival?", options: ["He provides the money", "Without Sancho Panza, Don Quixote would not have survived for long", "He protects him from the law"], correct: 1 },
+
+    // ===== TOPIC 5: ROMANTICISM, REALISM & NATURALISM (15) =====
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific movement was Romanticism a reaction against?", options: ["Realism", "Neoclassicism or Classicism", "Naturalism"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific characteristic is central to Romanticism?", options: ["Objectivity over subjectivity", "Subjectivity over objectivity, imagination over intelligence", "Science over emotion"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific historical context gave rise to Realism?", options: ["The French Revolution", "The strong problems between the proletariat and the bourgeoisie in the second half of the 19th century", "The discovery of America"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific scientific discoveries influenced Realism?", options: ["Advances in medicine and biology", "Discoveries that could explain the world through irrefutable truths", "The invention of the telescope"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What is the main goal of Realism?", options: ["To idealize reality", "To represent reality, imitating it, without embellishing it", "To exalt emotions and fantasy"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific authors are mentioned as representatives of Realism?", options: ["Goethe, Hugo, Bécquer", "Balzac, Flaubert, Dickens, Stendhal, Chekhov, Dostoyevsky", "Zola, Darwin, Taine"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific movement is considered an \"exaggerated realism\"?", options: ["Romanticism", "Realism", "Naturalism"], correct: 2 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific scientific theories influenced Naturalism?", options: ["Theories of relativity", "Darwin's natural selection, Claude Bernard's experimental medicine, Prosper Lucas's natural inheritance", "Newton's laws"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "How are characters portrayed in Naturalism?", options: ["As heroes with free will", "As laboratory rats observed by the reader, victims of heredity and environment", "As idealized beings"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific characteristic of Naturalism is described as \"determinism\"?", options: ["The fate of an individual is determined by biological, social, and environmental factors", "The individual is free to choose their destiny", "The individual is controlled by the gods"], correct: 0 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific work by Émile Zola is mentioned as a representative of Naturalism?", options: ["Nana", "Les Misérables", "Red and Black"], correct: 0 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific work by Victor Hugo is mentioned as a representative of Romanticism?", options: ["Les Misérables", "Nana", "Faust"], correct: 0 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific work by Stendhal is mentioned as a representative of Realism?", options: ["Red and Black", "Marianela", "The Gambler"], correct: 0 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific characteristic of Realism is described as \"elimination of sentimentality\"?", options: ["The use of colloquial language", "The elimination of sentimentality", "The analysis of bourgeois life"], correct: 1 },
+    { topic: "Romanticism, Realism & Naturalism", q: "What specific influence did Darwin's theories have on Naturalism?", options: ["Humans are products of heredity and environment", "Humans are free to choose", "Humans are divine"], correct: 0 },
+
+    // ===== TOPIC 6: NORTH AMERICAN LITERATURE (15) =====
+    { topic: "North American Literature", q: "What specific event marked the beginning of North American literature?", options: ["The arrival of the Pilgrims", "The independence of the United States in 1776", "The Civil War"], correct: 1 },
+    { topic: "North American Literature", q: "What specific values did early American writings exalt?", options: ["Patriotism, equality, freedom, and truth", "Monarchy, tradition, and religion", "Science, progress, and industry"], correct: 0 },
+    { topic: "North American Literature", q: "Which English authors were widely read in the United States before American writers gained self-confidence?", options: ["Shakespeare, Milton, Chaucer", "Daniel Defoe, Jonathan Swift, Samuel Richardson", "Dickens, Thackeray, Eliot"], correct: 1 },
+    { topic: "North American Literature", q: "What specific characteristic of North American literature is described as \"realism handled in a direct and raw way\"?", options: ["The inclusion of supernatural elements", "The reflection of misfortunes like natural disasters, epidemics, and banditry", "The idealization of nature"], correct: 1 },
+    { topic: "North American Literature", q: "What are common themes in Edgar Allan Poe's work?", options: ["Love, happiness, and hope", "Death, decadence, madness, and revenge", "Science, progress, and technology"], correct: 1 },
+    { topic: "North American Literature", q: "What specific narrative perspective does Poe use in his stories?", options: ["Third-person omniscient", "First-person", "Second-person"], correct: 1 },
+    { topic: "North American Literature", q: "What specific characteristic defines Mark Twain's writing?", options: ["Humor and social criticism", "Horror and mystery", "Scientific language"], correct: 0 },
+    { topic: "North American Literature", q: "What specific work by Herman Melville is mentioned as reflecting his view of human nature through isolation and passive resistance?", options: ["Moby-Dick", "Bartleby, the Scrivener", "The Raven"], correct: 1 },
+    { topic: "North American Literature", q: "What is the narrative perspective in The Adventures of Tom Sawyer?", options: ["First-person", "Third-person", "Second-person"], correct: 1 },
+    { topic: "North American Literature", q: "What specific characteristic of Poe's literary style is described as \"suggestive, leaving much to the imagination\"?", options: ["His use of scientific language", "His mysterious, melancholic, and gothic style", "His humorous and satirical tone"], correct: 1 },
+    { topic: "North American Literature", q: "What specific characteristic of North American literature is described as \"the characters have a strong psychology and very clear motives for acting\"?", options: ["The use of vivid images", "The strong psychology and clear motives of characters", "The abundant imagination of writers"], correct: 1 },
+    { topic: "North American Literature", q: "Which work by Mark Twain is a semi-autobiographical novel based on his own childhood experiences?", options: ["The Adventures of Tom Sawyer", "Moby-Dick", "The Raven"], correct: 0 },
+    { topic: "North American Literature", q: "Which of Edgar Allan Poe's works is a poem about a mysterious raven that visits a grieving narrator?", options: ["The Tell-Tale Heart", "The Raven", "The Fall of the House of Usher"], correct: 1 },
+    { topic: "North American Literature", q: "What is the central symbol in Herman Melville's Moby-Dick?", options: ["A golden treasure", "A white whale", "A magical sword"], correct: 1 },
+    { topic: "North American Literature", q: "What specific characteristic of North American literature is described as \"writers have an agile and simple way of writing\"?", options: ["The use of complex, Latinized language", "The agile and simple way of writing in narrative", "The use of scientific language"], correct: 1 }
+  ];
+
+  // ============================================================
+  // ESTADO DEL JUEGO
+  // ============================================================
+  let selectedQuestions = [];
+  let currentQuestion = 0;
+  let score = 0;
+  let answered = false;
+  let weakestTopic = '';
+  let topicErrors = {};
+  let studentEmail = '';
+  let studentUsername = '';
+
+  const gameContent = document.getElementById('gameContent');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const cardDisplay = document.getElementById('cardDisplay');
+  const progressFill = document.getElementById('progressFill');
+
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function selectQuestions() {
+    const topics = [
+      "Epic & Epopee",
+      "Medieval Songs",
+      "Renaissance",
+      "Spanish Golden Age",
+      "Romanticism, Realism & Naturalism",
+      "North American Literature"
+    ];
+    const selected = [];
+
+    topics.forEach(topic => {
+      const topicQuestions = questionBank.filter(q => q.topic === topic);
+      const randomQ = topicQuestions[Math.floor(Math.random() * topicQuestions.length)];
+      selected.push(randomQ);
+    });
+
+    const remaining = questionBank.filter(q => !selected.includes(q));
+    const shuffledRemaining = shuffle(remaining);
+    for (let i = 0; i < 4; i++) {
+      selected.push(shuffledRemaining[i]);
+    }
+
+    return shuffle(selected).map(q => shuffleOptions(q));
+  }
+
+  function shuffleOptions(question) {
+    const correctText = question.options[question.correct];
+
+    const shuffled = shuffle(question.options.map((text, i) => ({
+      text: text,
+      isCorrect: i === question.correct
+    })));
+
+    const newCorrectIndex = shuffled.findIndex(opt => opt.isCorrect);
+
+    return {
+      topic: question.topic,
+      q: question.q,
+      options: shuffled.map(opt => opt.text),
+      correct: newCorrectIndex
+    };
+  }
+
+  function updateScoreboard() {
+    scoreDisplay.textContent = `Score: ${score}`;
+    cardDisplay.textContent = `Q: ${currentQuestion}/${selectedQuestions.length}`;
+    progressFill.style.width = `${(currentQuestion / selectedQuestions.length) * 100}%`;
+  }
+
+  function showIdentificationScreen() {
+    gameContent.innerHTML = `
+      <div class="id-screen">
+        <h2>👤 Identify Yourself</h2>
+        <p>Before we begin, enter your institutional email and choose a username. Your username will appear on the public leaderboard.</p>
+
+        <div class="id-form">
+          <label for="emailInput">📧 Institutional Email</label>
+          <input type="email" id="emailInput" placeholder="yourname@tecmilenio.mx" autocomplete="off" />
+          <div class="error-message" id="emailError">Please enter a valid @tecmilenio.mx email.</div>
+
+          <label for="usernameInput">🎮 Username (public)</label>
+          <input type="text" id="usernameInput" placeholder="Choose a username (3-20 characters)" autocomplete="off" maxlength="20" />
+          <div class="error-message" id="usernameError">Username must be between 3 and 20 characters.</div>
+        </div>
+
+        <button class="btn" onclick="validateAndStart()">Start Challenge →</button>
+
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+          Already played? <a href="#" onclick="showLeaderboard(); return false;" style="color: #004943; font-weight: 700; text-decoration: underline;">View the Leaderboard →</a>
+        </p>
+      </div>
+    `;
+
+    document.getElementById('emailInput').focus();
+  }
+
+  function validateAndStart() {
+    const emailInput = document.getElementById('emailInput');
+    const usernameInput = document.getElementById('usernameInput');
+    const emailError = document.getElementById('emailError');
+    const usernameError = document.getElementById('usernameError');
+
+    const email = emailInput.value.trim().toLowerCase();
+    const username = usernameInput.value.trim();
+
+    let valid = true;
+
+    if (!email.endsWith('@tecmilenio.mx') || email.length < 20) {
+      emailInput.classList.add('error');
+      emailError.classList.add('visible');
+      valid = false;
+    } else {
+      emailInput.classList.remove('error');
+      emailError.classList.remove('visible');
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      usernameInput.classList.add('error');
+      usernameError.classList.add('visible');
+      valid = false;
+    } else {
+      usernameInput.classList.remove('error');
+      usernameError.classList.remove('visible');
+    }
+
+    if (!valid) return;
+
+    studentEmail = email;
+    studentUsername = username;
+
+    localStorage.setItem('guw_username', username);
+    localStorage.setItem('guw_email', email);
+
+    startGame();
+  }
+
+  function startGame() {
+    selectedQuestions = selectQuestions();
+    currentQuestion = 0;
+    score = 0;
+    topicErrors = {};
+    updateScoreboard();
+    showQuestion();
+  }
+
+  function showQuestion() {
+    if (currentQuestion >= selectedQuestions.length) {
+      showEndScreen();
+      return;
+    }
+
+    answered = false;
+    const q = selectedQuestions[currentQuestion];
+
+    gameContent.innerHTML = `
+      <div class="question-screen">
+        <div class="question-counter">Question ${currentQuestion + 1} of ${selectedQuestions.length}</div>
+        <div class="topic-tag">${q.topic}</div>
+        <div class="question-box">
+          <div class="question-text">${q.q}</div>
+        </div>
+        <div class="options-list" id="optionsList">
+          ${q.options.map((opt, i) => `
+            <button class="option-btn" onclick="selectOption(${i})" data-index="${i}">
+              <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+              <span>${opt}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div id="feedbackArea"></div>
+      </div>
+    `;
+
+    updateScoreboard();
+  }
+
+  function selectOption(index) {
+    if (answered) return;
+    answered = true;
+
+    const q = selectedQuestions[currentQuestion];
+    const options = document.querySelectorAll('.option-btn');
+    const feedbackArea = document.getElementById('feedbackArea');
+
+    options.forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.correct) {
+        btn.classList.add('correct');
+      } else if (i === index) {
+        btn.classList.add('incorrect');
+      }
+    });
+
+    if (index === q.correct) {
+      score += 10;
+      feedbackArea.innerHTML = `<div class="feedback correct">✅ Correct! +10 points</div>`;
+    } else {
+      topicErrors[q.topic] = (topicErrors[q.topic] || 0) + 1;
+      feedbackArea.innerHTML = `
+        <div class="feedback incorrect">
+          ❌ Not quite. The correct answer was: <strong>${q.options[q.correct]}</strong>
+        </div>
+      `;
+    }
+
+    updateScoreboard();
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    actions.innerHTML = `
+      <button class="btn" onclick="nextQuestion()">
+        ${currentQuestion === selectedQuestions.length - 1 ? 'See Results' : 'Next Question →'}
+      </button>
+    `;
+    gameContent.querySelector('.question-screen').appendChild(actions);
+  }
+
+  function nextQuestion() {
+    currentQuestion++;
+    updateScoreboard();
+    showQuestion();
+  }
+
+  function showEndScreen() {
+    let maxErrors = 0;
+    for (const [topic, errors] of Object.entries(topicErrors)) {
+      if (errors > maxErrors) {
+        maxErrors = errors;
+        weakestTopic = topic;
+      }
+    }
+
+    const storageKey = `guw_score_${studentEmail}`;
+    const previousTotal = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    const newTotal = previousTotal + score;
+    const attemptNumber = parseInt(localStorage.getItem(`guw_attempts_${studentEmail}`) || '0', 10) + 1;
+
+    localStorage.setItem(storageKey, newTotal);
+    localStorage.setItem(`guw_attempts_${studentEmail}`, attemptNumber);
+
+    let title, message, tip;
+
+    if (score === 100) {
+      title = "🏆 PERFECTION!";
+      message = "You nailed every single question. This is extraordinary.";
+      tip = "<strong>Tip:</strong> You're more than ready for the Midterm. Keep your momentum by reviewing the two topics you find most challenging—even perfection has room for mastery.";
+    } else if (score >= 90) {
+      title = "🌟 OUTSTANDING!";
+      message = "You're in excellent shape for the exam.";
+      tip = "<strong>Tip:</strong> Focus on the one or two questions you missed. Re-read those specific topics and try teaching them to a classmate. Teaching is the fastest way to lock in knowledge.";
+    } else if (score >= 70) {
+      title = "✅ YOU PASS!";
+      message = "You made it, but just barely. There's room to grow.";
+      tip = "<strong>Tip:</strong> Create a concept map connecting all six topics. Then use active recall: close your notes and explain each topic out loud. Repeat until you can do it without hesitation.";
+    } else {
+      title = "📚 KEEP STUDYING";
+      message = "This score means you need more review before the Midterm.";
+      tip = "<strong>Tip:</strong> Don't panic. Start with the topic you feel most confident about, then move to the hardest one. Use flashcards, teach a friend, and get a good night's sleep before the exam. You've got this.";
+    }
+
+    const submissionUrl = buildSubmissionUrl(newTotal);
+
+    gameContent.innerHTML = `
+      <div class="end-screen">
+        <h2>${title}</h2>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">This Attempt</div>
+            <div class="stat-value">${score}/100</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Total Score</div>
+            <div class="stat-value">${newTotal}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Attempt</div>
+            <div class="stat-value">#${attemptNumber}</div>
+          </div>
+        </div>
+
+        <div class="final-message">${message}</div>
+        <div class="final-tip">${tip}</div>
+
+        <div class="submission-box">
+          <p>📤 Submit your score to the official leaderboard:</p>
+          <a href="${submissionUrl}" target="_blank" rel="noopener" class="btn btn-orange" style="text-decoration: none; display: inline-block;">Submit Score →</a>
+          <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">If the form doesn't pre-fill, copy this code:</p>
+          <div class="code-box" id="scoreCode">Email: ${studentEmail} | Username: ${studentUsername} | Score: ${score} | Total: ${newTotal}</div>
+          <button class="btn-secondary" onclick="copyScoreCode()">📋 Copy Score Code</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button class="btn-secondary" onclick="showLeaderboard()">🏆 View Leaderboard</button>
+          <button class="btn" onclick="startGame()">Play Again</button>
+        </div>
+
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+          Playing as <strong>${studentUsername}</strong> (${studentEmail})
+        </p>
+      </div>
+    `;
+
+    progressFill.style.width = '100%';
+  }
+
+  function buildSubmissionUrl(newTotal) {
+    const params = new URLSearchParams();
+    params.append(FORM_FIELDS.email, studentEmail);
+    params.append(FORM_FIELDS.username, studentUsername);
+    params.append(FORM_FIELDS.score, score);
+    params.append(FORM_FIELDS.total, newTotal);
+
+    return `${GOOGLE_FORM_URL}&${params.toString()}`;
+  }
+
+  function copyScoreCode() {
+    const codeText = document.getElementById('scoreCode').textContent;
+    navigator.clipboard.writeText(codeText).then(() => {
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => { btn.textContent = originalText; }, 2000);
+    }).catch(err => {
+      alert('Copy failed. Please select the text manually.');
+    });
+  }
+
+  // ============================================================
+  // NUEVA FUNCIÓN: MOSTRAR EL RANKING EN UN IFRAME
+  // ============================================================
+  function showLeaderboard() {
+    gameContent.innerHTML = `
+      <div style="text-align: center; animation: fadeIn 0.5s ease;">
+        <h2 style="color: #004943; font-size: 1.8rem; margin-bottom: 10px;">🏆 Live Leaderboard</h2>
+        <p style="color: #666; font-size: 1rem; margin-bottom: 20px;">See how you rank against your classmates. Updated automatically.</p>
+        <iframe
+          src="${LEADERBOARD_URL}"
+          style="width: 100%; height: 600px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #ffffff;"
+          title="Leaderboard"
+          loading="lazy">
+        </iframe>
+        <div style="margin-top: 20px;">
+          <button class="btn" onclick="showIdentificationScreen()">← Back to Start</button>
+        </div>
+      </div>
+    `;
+    progressFill.style.width = '0%';
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  showIdentificationScreen();
+</script>
+
+</body>
+</html>
