@@ -230,10 +230,11 @@
 <script>
   // ============================================================
   // CONFIGURACIÓN: URL del Google Sheet publicado como CSV
+  // Usamos corsproxy.io (el que funciona)
   // ============================================================
   const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5yk668jSWo5Ra4OdVpRcIIreMYqIogg7-PETMC6C9KYJrUADUYAFyYKO_-3tcJWDziA80FhnxUOxi/pub?gid=1530046001&single=true&output=csv';
-const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
- 
+  const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
+
   // ============================================================
   // FUNCIÓN PRINCIPAL: Cargar y mostrar el ranking
   // ============================================================
@@ -248,7 +249,6 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
       const csvText = await response.text();
       const rows = parseCSV(csvText);
 
-      // ===== SIN DATOS =====
       if (rows.length < 2) {
         content.innerHTML = `
           <div class="empty">
@@ -262,7 +262,6 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
         return;
       }
 
-      // ===== DETECTAR COLUMNAS =====
       const headers = rows[0].map(h => h.trim());
       const emailIndex = headers.findIndex(h => h.toLowerCase().includes('email'));
       const usernameIndex = headers.findIndex(h => h.toLowerCase().includes('username'));
@@ -272,7 +271,6 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
         throw new Error('CSV headers not found. Expected: Institutional Email, Username, Total Score');
       }
 
-      // ===== AGRUPAR POR EMAIL =====
       const userMap = new Map();
 
       for (let i = 1; i < rows.length; i++) {
@@ -306,7 +304,6 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
         return;
       }
 
-      // ===== RENDERIZAR TABLA =====
       let html = '<table class="leaderboard-table"><thead><tr>';
       html += '<th>Rank</th>';
       html += '<th>Username</th>';
@@ -345,9 +342,6 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
     }
   }
 
-  // ============================================================
-  // PARSE CSV
-  // ============================================================
   function parseCSV(text) {
     const rows = [];
     let currentRow = [];
@@ -394,18 +388,12 @@ const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL);
     return rows.filter(row => row.some(cell => cell.trim() !== ''));
   }
 
-  // ============================================================
-  // ESCAPAR HTML
-  // ============================================================
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  // ============================================================
-  // INIT
-  // ============================================================
   loadLeaderboard();
   setInterval(loadLeaderboard, 60000);
 </script>
