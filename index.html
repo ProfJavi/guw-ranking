@@ -81,18 +81,18 @@
     justify-content: center;
   }
 
-  .start-screen, .end-screen, .id-screen, .leaderboard-screen {
+  .start-screen, .end-screen, .id-screen, .leaderboard-screen, .closed-screen {
     text-align: center;
     animation: fadeIn 0.5s ease;
   }
 
-  .start-screen h2, .end-screen h2, .id-screen h2, .leaderboard-screen h2 {
+  .start-screen h2, .end-screen h2, .id-screen h2, .leaderboard-screen h2, .closed-screen h2 {
     color: #004943;
     font-size: 2rem;
     margin-bottom: 15px;
   }
 
-  .start-screen p, .end-screen p, .id-screen p, .leaderboard-screen p {
+  .start-screen p, .end-screen p, .id-screen p, .leaderboard-screen p, .closed-screen p {
     color: #666;
     font-size: 1.05rem;
     margin-bottom: 25px;
@@ -223,13 +223,49 @@
 
   .question-screen { animation: slideIn 0.4s ease; }
 
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
   .question-counter {
     color: #F18625;
     font-weight: 700;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 10px;
+  }
+
+  .timer {
+    background: #004943;
+    color: #FFFFFF;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.3s ease;
+  }
+
+  .timer.warning {
+    background: #F18625;
+    animation: pulse 1s infinite;
+  }
+
+  .timer.danger {
+    background: #dc3545;
+    animation: pulse 0.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
   }
 
   .topic-tag {
@@ -342,40 +378,18 @@
     border-left: 5px solid #dc3545;
   }
 
+  .feedback.timeout {
+    background: #fff3cd;
+    color: #856404;
+    border-left: 5px solid #F18625;
+  }
+
   .card-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
     margin-top: 15px;
   }
-
-  .final-score {
-    font-size: 4rem;
-    color: #F18625;
-    font-weight: 700;
-    margin: 20px 0 10px 0;
-  }
-
-  .final-message {
-    font-size: 1.3rem;
-    color: #004943;
-    font-weight: 700;
-    margin-bottom: 15px;
-  }
-
-  .final-tip {
-    background: #F5F5F5;
-    border-left: 5px solid #F18625;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: left;
-    margin: 25px 0;
-    color: #333;
-    font-size: 1rem;
-    line-height: 1.6;
-  }
-
-  .final-tip strong { color: #004943; }
 
   .stats-row {
     display: flex;
@@ -532,6 +546,41 @@
 
   .leaderboard-error { color: #dc3545; }
 
+  .closed-screen {
+    padding: 20px;
+  }
+
+  .closed-screen .closed-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .closed-screen .closed-title {
+    color: #004943;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+
+  .closed-screen .closed-message {
+    color: #666;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 25px auto;
+  }
+
+  .closed-screen .closed-badge {
+    display: inline-block;
+    background: #fee2e2;
+    color: #7f1d1d;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideIn {
     from { opacity: 0; transform: translateX(30px); }
@@ -575,9 +624,16 @@
 
 <script>
   // ============================================================
-  // CONFIGURACIÓN: SheetDB API
+  // CONFIGURACIÓN GENERAL
   // ============================================================
   const SHEETDB_URL = 'https://sheetdb.io/api/v1/i5kc1z0404ns0';
+
+  // Tiempo por pregunta (en segundos)
+  const SECONDS_PER_QUESTION = 30;
+
+  // Fecha de cierre: 29 de septiembre, 6:30 AM hora del centro de México
+  // 6:30 AM CDMX = 12:30 UTC (México ya no usa horario de verano desde 2022)
+  const DEADLINE = new Date('2026-09-29T12:30:00Z');
 
   // ============================================================
   // BANCO DE 90 PREGUNTAS (15 por tema)
@@ -697,6 +753,8 @@
   let topicErrors = {};
   let studentEmail = '';
   let studentUsername = '';
+  let timerInterval = null;
+  let timeLeft = SECONDS_PER_QUESTION;
 
   const gameContent = document.getElementById('gameContent');
   const scoreDisplay = document.getElementById('scoreDisplay');
@@ -739,8 +797,6 @@
   }
 
   function shuffleOptions(question) {
-    const correctText = question.options[question.correct];
-
     const shuffled = shuffle(question.options.map((text, i) => ({
       text: text,
       isCorrect: i === question.correct
@@ -762,7 +818,40 @@
     progressFill.style.width = `${(currentQuestion / selectedQuestions.length) * 100}%`;
   }
 
+  // ============================================================
+  // VERIFICACIÓN DE FECHA DE CIERRE
+  // ============================================================
+  function isChallengeClosed() {
+    return new Date() >= DEADLINE;
+  }
+
+  function showClosedScreen() {
+    gameContent.innerHTML = `
+      <div class="closed-screen">
+        <div class="closed-icon">🔒</div>
+        <div class="closed-title">Challenge Closed</div>
+        <div class="closed-badge">⏰ Deadline reached</div>
+        <div class="closed-message">
+          The Interactive Exam Challenge is now closed. It was available until <strong>Monday, September 29, at 6:30 AM (Mexico City time)</strong>.
+          <br><br>
+          If you already played, your score has been recorded. The leaderboard will remain visible for reference.
+        </div>
+        <button class="btn" onclick="showLeaderboard()">🏆 View Final Leaderboard</button>
+      </div>
+    `;
+    progressFill.style.width = '100%';
+  }
+
+  // ============================================================
+  // PANTALLA DE IDENTIFICACIÓN
+  // ============================================================
   function showIdentificationScreen() {
+    // Si la fecha de cierre ya pasó, mostrar pantalla de cierre
+    if (isChallengeClosed()) {
+      showClosedScreen();
+      return;
+    }
+
     gameContent.innerHTML = `
       <div class="id-screen">
         <h2>👤 Identify Yourself</h2>
@@ -776,6 +865,16 @@
           <label for="usernameInput">🎮 Username (public)</label>
           <input type="text" id="usernameInput" placeholder="Choose a username (3-20 characters)" autocomplete="off" maxlength="20" />
           <div class="error-message" id="usernameError">Username must be between 3 and 20 characters.</div>
+        </div>
+
+        <div class="rules">
+          <h3>⏱️ Important: Time Limit</h3>
+          <ul>
+            <li>You have <strong>${SECONDS_PER_QUESTION} seconds per question</strong></li>
+            <li>If time runs out, the question is marked as <strong>incorrect</strong></li>
+            <li>Total time per attempt: <strong>${SECONDS_PER_QUESTION * 10 / 60} minutes</strong></li>
+            <li>The challenge closes on <strong>September 29, 6:30 AM (CDMX)</strong></li>
+          </ul>
         </div>
 
         <button class="btn" onclick="validateAndStart()">Start Challenge →</button>
@@ -829,7 +928,16 @@
     startGame();
   }
 
+  // ============================================================
+  // JUEGO
+  // ============================================================
   function startGame() {
+    // Verificar cierre de nuevo (por si acaso)
+    if (isChallengeClosed()) {
+      showClosedScreen();
+      return;
+    }
+
     selectedQuestions = selectQuestions();
     currentQuestion = 0;
     score = 0;
@@ -839,17 +947,27 @@
   }
 
   function showQuestion() {
+    // Limpiar cualquier temporizador previo
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
     if (currentQuestion >= selectedQuestions.length) {
       showEndScreen();
       return;
     }
 
     answered = false;
+    timeLeft = SECONDS_PER_QUESTION;
     const q = selectedQuestions[currentQuestion];
 
     gameContent.innerHTML = `
       <div class="question-screen">
-        <div class="question-counter">Question ${currentQuestion + 1} of ${selectedQuestions.length}</div>
+        <div class="question-header">
+          <div class="question-counter">Question ${currentQuestion + 1} of ${selectedQuestions.length}</div>
+          <div class="timer" id="timerDisplay">⏱️ ${timeLeft}s</div>
+        </div>
         <div class="topic-tag">${q.topic}</div>
         <div class="question-box">
           <div class="question-text">${q.q}</div>
@@ -867,11 +985,80 @@
     `;
 
     updateScoreboard();
+    startTimer();
+  }
+
+  function startTimer() {
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timerDisplay) {
+        timerDisplay.textContent = `⏱️ ${timeLeft}s`;
+
+        // Cambiar color según el tiempo restante
+        timerDisplay.classList.remove('warning', 'danger');
+        if (timeLeft <= 5) {
+          timerDisplay.classList.add('danger');
+        } else if (timeLeft <= 10) {
+          timerDisplay.classList.add('warning');
+        }
+      }
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        handleTimeout();
+      }
+    }, 1000);
+  }
+
+  function handleTimeout() {
+    if (answered) return;
+    answered = true;
+
+    const q = selectedQuestions[currentQuestion];
+    const options = document.querySelectorAll('.option-btn');
+    const feedbackArea = document.getElementById('feedbackArea');
+
+    // Marcar la correcta en verde, no marcar incorrecta (porque nadie eligió)
+    options.forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.correct) {
+        btn.classList.add('correct');
+      }
+    });
+
+    // Registrar error por tema
+    topicErrors[q.topic] = (topicErrors[q.topic] || 0) + 1;
+
+    feedbackArea.innerHTML = `
+      <div class="feedback timeout">
+        ⏰ Time's up! The correct answer was: <strong>${q.options[q.correct]}</strong>
+      </div>
+    `;
+
+    updateScoreboard();
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    actions.innerHTML = `
+      <button class="btn" onclick="nextQuestion()">
+        ${currentQuestion === selectedQuestions.length - 1 ? 'See Results' : 'Next Question →'}
+      </button>
+    `;
+    gameContent.querySelector('.question-screen').appendChild(actions);
   }
 
   function selectOption(index) {
     if (answered) return;
     answered = true;
+
+    // Detener el temporizador
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
 
     const q = selectedQuestions[currentQuestion];
     const options = document.querySelectorAll('.option-btn');
@@ -916,7 +1103,16 @@
     showQuestion();
   }
 
+  // ============================================================
+  // PANTALLA FINAL + ENVÍO A SHEETDB
+  // ============================================================
   function showEndScreen() {
+    // Limpiar temporizador
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
     let maxErrors = 0;
     for (const [topic, errors] of Object.entries(topicErrors)) {
       if (errors > maxErrors) {
@@ -992,13 +1188,9 @@
 
     progressFill.style.width = '100%';
 
-    // ===== ENVIAR AUTOMÁTICAMENTE A SHEETDB =====
     submitScoreToSheetDB(score, newTotal);
   }
 
-  // ============================================================
-  // ENVÍO DIRECTO A SHEETDB (SIN GOOGLE FORM)
-  // ============================================================
   async function submitScoreToSheetDB(attemptScore, totalScore) {
     const submissionBox = document.getElementById('submissionBox');
 
@@ -1049,7 +1241,7 @@
   }
 
   // ============================================================
-  // NUEVA FUNCIÓN: MOSTRAR SOLO LA TABLA DEL RANKING
+  // RANKING
   // ============================================================
   async function showLeaderboard() {
     gameContent.innerHTML = `
@@ -1173,7 +1365,12 @@
   // ============================================================
   // INIT
   // ============================================================
-  showIdentificationScreen();
+  // Verificar si el challenge está cerrado antes de mostrar nada
+  if (isChallengeClosed()) {
+    showClosedScreen();
+  } else {
+    showIdentificationScreen();
+  }
 </script>
 
 </body>
