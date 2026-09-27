@@ -1,3 +1,11 @@
+// Detectar si estamos dentro de un iframe
+const isEmbedded = window.self !== window.top;
+
+if (isEmbedded) {
+  // Ocultar header y footer cuando está incrustado
+  document.querySelector('.header').style.display = 'none';
+  document.querySelector('.footer').style.display = 'none';
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
