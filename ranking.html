@@ -241,36 +241,6 @@
 
 <script>
   // ============================================================
-  // DETECCIÓN DE IFRAME
-  // Si el ranking está incrustado en el juego, ocultamos
-  // el header, footer y last-update para una integración limpia
-  // ============================================================
-  const isEmbedded = window.self !== window.top;
-
-  if (isEmbedded) {
-    // Ocultar elementos del ranking cuando está incrustado
-    const header = document.querySelector('.header');
-    const footer = document.querySelector('.footer');
-    const lastUpdateEl = document.querySelector('.last-update');
-    const container = document.querySelector('.container');
-    const body = document.body;
-
-    if (header) header.style.display = 'none';
-    if (footer) footer.style.display = 'none';
-    if (lastUpdateEl) lastUpdateEl.style.display = 'none';
-    if (container) {
-      container.style.boxShadow = 'none';
-      container.style.borderRadius = '0';
-      container.style.maxWidth = '100%';
-    }
-    if (body) {
-      body.style.padding = '0';
-      body.style.background = 'transparent';
-      body.style.minHeight = 'auto';
-    }
-  }
-
-  // ============================================================
   // CONFIGURACIÓN: URL de SheetDB API
   // ============================================================
   const SHEETDB_URL = 'https://sheetdb.io/api/v1/i5kc1z0404ns0';
@@ -298,7 +268,7 @@
             <a href="https://profjavi.github.io/guw-ranking/" class="empty-cta">Play the Exam Challenge →</a>
           </div>
         `;
-        if (lastUpdate) lastUpdate.textContent = '';
+        lastUpdate.textContent = '';
         return;
       }
 
@@ -345,7 +315,7 @@
             <a href="https://profjavi.github.io/guw-ranking/" class="empty-cta">Play the Exam Challenge →</a>
           </div>
         `;
-        if (lastUpdate) lastUpdate.textContent = '';
+        lastUpdate.textContent = '';
         return;
       }
 
@@ -377,18 +347,16 @@
       html += '</tbody></table>';
       content.innerHTML = html;
 
-      if (lastUpdate) {
-        const now = new Date();
-        lastUpdate.textContent = `Last updated: ${now.toLocaleString('en-US', {
-          month: 'short', day: 'numeric', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        })}`;
-      }
+      const now = new Date();
+      lastUpdate.textContent = `Last updated: ${now.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })}`;
 
     } catch (error) {
       console.error('Error loading leaderboard:', error);
       content.innerHTML = `<div class="error">❌ Could not load leaderboard. Please try again later.</div>`;
-      if (lastUpdate) lastUpdate.textContent = '';
+      lastUpdate.textContent = '';
     }
   }
 
