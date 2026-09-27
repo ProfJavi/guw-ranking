@@ -282,9 +282,10 @@
 
         if (!email || !username || isNaN(totalScore)) return;
 
-        if (!userMap.has(email) || totalScore > userMap.get(email).totalScore) {
-          userMap.set(email, { username, totalScore });
-        }
+        if (!userMap.has(email)) {
+  userMap.set(email, { username, totalScore: 0 });
+}
+userMap.get(email).totalScore += totalScore;
       });
 
       const leaderboard = Array.from(userMap.values())
