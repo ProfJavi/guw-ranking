@@ -1,11 +1,3 @@
-// Detectar si estamos dentro de un iframe
-const isEmbedded = window.self !== window.top;
-
-if (isEmbedded) {
-  // Ocultar header y footer cuando está incrustado
-  document.querySelector('.header').style.display = 'none';
-  document.querySelector('.footer').style.display = 'none';
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -179,6 +171,18 @@ if (isEmbedded) {
     font-size: 1.1rem;
   }
 
+  .attempts-badge {
+    display: inline-block;
+    background: #F18625;
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: 700;
+  }
+
   .footer {
     text-align: center;
     padding: 20px;
@@ -237,6 +241,36 @@ if (isEmbedded) {
 
 <script>
   // ============================================================
+  // DETECCIÓN DE IFRAME
+  // Si el ranking está incrustado en el juego, ocultamos
+  // el header, footer y last-update para una integración limpia
+  // ============================================================
+  const isEmbedded = window.self !== window.top;
+
+  if (isEmbedded) {
+    // Ocultar elementos del ranking cuando está incrustado
+    const header = document.querySelector('.header');
+    const footer = document.querySelector('.footer');
+    const lastUpdateEl = document.querySelector('.last-update');
+    const container = document.querySelector('.container');
+    const body = document.body;
+
+    if (header) header.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    if (lastUpdateEl) lastUpdateEl.style.display = 'none';
+    if (container) {
+      container.style.boxShadow = 'none';
+      container.style.borderRadius = '0';
+      container.style.maxWidth = '100%';
+    }
+    if (body) {
+      body.style.padding = '0';
+      body.style.background = 'transparent';
+      body.style.minHeight = 'auto';
+    }
+  }
+
+  // ============================================================
   // CONFIGURACIÓN: URL de SheetDB API
   // ============================================================
   const SHEETDB_URL = 'https://sheetdb.io/api/v1/i5kc1z0404ns0';
@@ -264,36 +298,39 @@ if (isEmbedded) {
             <a href="https://profjavi.github.io/guw-ranking/" class="empty-cta">Play the Exam Challenge →</a>
           </div>
         `;
-        lastUpdate.textContent = '';
+        if (lastUpdate) lastUpdate.textContent = '';
         return;
       }
 
-      // ===== DETECTAR COLUMNAS (nombres flexibles) =====
+      // ===== DETECTAR COLUMNAS =====
       const firstRow = data[0];
       const keys = Object.keys(firstRow);
 
       const emailKey = keys.find(k => k.toLowerCase().includes('email'));
       const usernameKey = keys.find(k => k.toLowerCase().includes('username'));
-      const totalScoreKey = keys.find(k => k.toLowerCase().includes('total score'));
+      const scoreKey = keys.find(k => k.toLowerCase().includes('score (this attempt)'));
 
-      if (!emailKey || !usernameKey || !totalScoreKey) {
-        throw new Error('No se encontraron las columnas necesarias. Se esperan: Institutional Email, Username, Total Score');
+      if (!emailKey || !usernameKey || !scoreKey) {
+        throw new Error('No se encontraron las columnas necesarias. Se esperan: Institutional Email, Username, Score (This Attempt)');
       }
 
-      // ===== AGRUPAR POR EMAIL (quedarse con el mayor puntaje) =====
+      // ===== AGRUPAR POR EMAIL Y SUMAR PUNTAJES =====
       const userMap = new Map();
 
       data.forEach(row => {
         const email = (row[emailKey] || '').trim().toLowerCase();
         const username = (row[usernameKey] || '').trim();
-        const totalScore = parseInt(row[totalScoreKey], 10);
+        const score = parseInt(row[scoreKey], 10);
 
-        if (!email || !username || isNaN(totalScore)) return;
+        if (!email || !username || isNaN(score)) return;
 
         if (!userMap.has(email)) {
-  userMap.set(email, { username, totalScore: 0 });
-}
-userMap.get(email).totalScore += totalScore;
+          userMap.set(email, { username, totalScore: 0, attempts: 0 });
+        }
+        const user = userMap.get(email);
+        user.totalScore += score;
+        user.attempts += 1;
+        user.username = username; // Use the most recent username
       });
 
       const leaderboard = Array.from(userMap.values())
@@ -308,7 +345,7 @@ userMap.get(email).totalScore += totalScore;
             <a href="https://profjavi.github.io/guw-ranking/" class="empty-cta">Play the Exam Challenge →</a>
           </div>
         `;
-        lastUpdate.textContent = '';
+        if (lastUpdate) lastUpdate.textContent = '';
         return;
       }
 
@@ -328,9 +365,11 @@ userMap.get(email).totalScore += totalScore;
         else if (rank === 2) { rankClass = 'rank-2'; rankDisplay = '🥈'; }
         else if (rank === 3) { rankClass = 'rank-3'; rankDisplay = '🥉'; }
 
+        const attemptsBadge = entry.attempts > 1 ? `<span class="attempts-badge">${entry.attempts}×</span>` : '';
+
         html += `<tr class="${rankClass}">`;
         html += `<td class="rank-cell">${rankDisplay}</td>`;
-        html += `<td class="username-cell">${escapeHtml(entry.username)}</td>`;
+        html += `<td class="username-cell">${escapeHtml(entry.username)}${attemptsBadge}</td>`;
         html += `<td class="score-cell">${entry.totalScore}</td>`;
         html += `</tr>`;
       });
@@ -338,16 +377,18 @@ userMap.get(email).totalScore += totalScore;
       html += '</tbody></table>';
       content.innerHTML = html;
 
-      const now = new Date();
-      lastUpdate.textContent = `Last updated: ${now.toLocaleString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      })}`;
+      if (lastUpdate) {
+        const now = new Date();
+        lastUpdate.textContent = `Last updated: ${now.toLocaleString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        })}`;
+      }
 
     } catch (error) {
       console.error('Error loading leaderboard:', error);
       content.innerHTML = `<div class="error">❌ Could not load leaderboard. Please try again later.</div>`;
-      lastUpdate.textContent = '';
+      if (lastUpdate) lastUpdate.textContent = '';
     }
   }
 
